@@ -1,0 +1,113 @@
+/* verify.css */
+
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7fc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container */
+.registration-container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.1);
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Header */
+.registration-container h1 {
+    margin-bottom: 10px;
+    color: #1e4fa1; /* same blue theme */
+    font-size: 24px;
+}
+
+.registration-container p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* Alerts */
+.alert {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background: #e6f9ed;
+    border-left: 4px solid #28a745;
+    color: #1b6e30;
+}
+
+.alert-error {
+    background: #fdecea;
+    border-left: 4px solid #e74c3c;
+    color: #b52b27;
+}
+
+/* Form */
+.registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.registration-form label {
+    font-size: 14px;
+    text-align: left;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.registration-form input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.registration-form input:focus {
+    border-color: #1e4fa1;
+    box-shadow: 0 0 5px rgba(30,79,161,0.3);
+}
+
+/* Button */
+.registration-form button {
+    padding: 12px;
+    background: #1e4fa1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.registration-form button:hover {
+    background: #163b79;
+}
+
+/* Login link inside success message */
+.alert-success a {
+    color: #1e4fa1;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.alert-success a:hover {
+    text-decoration: underline;
+}
