@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 need_1, need_2, need_3,
                 water_supply, toilet_facility, toilet_other,
                 garbage_disposal, lighting_fuel, lighting_other,
-                cooking_fuel, cooking_other,
+                cooking_fuel, cooking_other, source_income, status_work_business, place_work_business,
                 submitted_at
             ) VALUES (
                 :first_name, :last_name, :age, :gender, :contact_no,
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 :need_1, :need_2, :need_3,
                 :water_supply, :toilet_facility, :toilet_other,
                 :garbage_disposal, :lighting_fuel, :lighting_other,
-                :cooking_fuel, :cooking_other,
+                :cooking_fuel, :cooking_other, :source_income, :status_work_business, :place_work_business,
                 NOW()
             )
         ");
@@ -73,55 +73,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':lighting_fuel' => $_POST['lighting_fuel'] ?? '',
             ':lighting_other' => $_POST['lighting_other'] ?? '',
             ':cooking_fuel' => $_POST['cooking_fuel'] ?? '',
-            ':cooking_other' => $_POST['cooking_other'] ?? ''
+            ':cooking_other' => $_POST['cooking_other'] ?? '',
+            ':source_income' => $_POST['income_source'] ?? null,
+            ':status_work_business' => $_POST['work_status'] ?? null,
+            ':place_work_business' => $_POST['work_place'] ?? null
         ]);
 
         $household_id = $conn->lastInsertId();
 
-        // 👨‍👩‍👧‍👦 Save household members
-        $member_stmt = $conn->prepare("
-            INSERT INTO household_members (
-                household_id, member_name, age, birth_month, birth_year, sex,
-                philhealth_have, philhealth_id, pwd_have, pwd_id, relationship,
-                civil_status, religion, citizenship, education_level, currently_enrolled,
-                school_level, school_place, employment_status, work_details
-            ) VALUES (
-                :household_id, :member_name, :age, :birth_month, :birth_year, :sex,
-                :philhealth_have, :philhealth_id, :pwd_have, :pwd_id, :relationship,
-                :civil_status, :religion, :citizenship, :education_level, :currently_enrolled,
-                :school_level, :school_place, :employment_status, :work_details
-            )
-        ");
+       // 👨‍👩‍👧‍👦 Save household members
+$member_stmt = $conn->prepare("
+    INSERT INTO household_members (
+        household_id, member_name, age, birth_month, birth_year, sex,
+        philhealth_have, philhealth_id, pwd_have, pwd_id, relationship,
+        civil_status, religion, citizenship, education_level, currently_enrolled,
+        school_level, school_place, employment_status, work_details, monthly_income
+    ) VALUES (
+        :household_id, :member_name, :age, :birth_month, :birth_year, :sex,
+        :philhealth_have, :philhealth_id, :pwd_have, :pwd_id, :relationship,
+        :civil_status, :religion, :citizenship, :education_level, :currently_enrolled,
+        :school_level, :school_place, :employment_status, :work_details, :monthly_income
+    )
+");
 
-        for ($i = 1; $i <= 10; $i++) {
-            if (!empty($_POST["member_name_$i"])) {
-                $member_stmt->execute([
-                    ':household_id' => $household_id,
-                    ':member_name' => $_POST["member_name_$i"] ?? '',
-                    ':age' => $_POST["age_$i"] ?? '',
-                    ':birth_month' => $_POST["birth_month_$i"] ?? '',
-                    ':birth_year' => $_POST["birth_year_$i"] ?? '',
-                    ':sex' => $_POST["sex_$i"] ?? '',
-                    ':philhealth_have' => $_POST["philhealth_have_$i"] ?? '',
-                    ':philhealth_id' => $_POST["philhealth_id_$i"] ?? null,
-                    ':pwd_have' => $_POST["pwd_have_$i"] ?? '',
-                    ':pwd_id' => $_POST["pwd_id_$i"] ?? null,
-                    ':relationship' => $_POST["relationship_$i"] ?? '',
-                    ':civil_status' => $_POST["civil_status_$i"] ?? '',
-                    ':religion' => $_POST["religion_$i"] ?? '',
-                    ':citizenship' => $_POST["citizenship_$i"] ?? '',
-                    ':education_level' => $_POST["education_level_$i"] ?? '',
-                    ':currently_enrolled' => $_POST["currently_enrolled_$i"] ?? '',
-                    ':school_level' => $_POST["school_level_$i"] ?? '',
-                    ':school_place' => $_POST["school_place_$i"] ?? '',
-                    ':employment_status' => $_POST["employment_$i"] ?? '',
-                    ':work_details' => $_POST["work_details_$i"] ?? ''
-                ]);
-            }
-        }
+$i = 1;
+while (!empty($_POST["member_name_$i"])) {
+    $member_stmt->execute([
+        ':household_id' => $household_id,
+        ':member_name' => $_POST["member_name_$i"] ?? '',
+        ':age' => $_POST["age_$i"] ?? '',
+        ':birth_month' => $_POST["birth_month_$i"] ?? '',
+        ':birth_year' => $_POST["birth_year_$i"] ?? '',
+        ':sex' => $_POST["sex_$i"] ?? '',
+        ':philhealth_have' => $_POST["philhealth_have_$i"] ?? '',
+        ':philhealth_id' => $_POST["philhealth_id_$i"] ?? '',
+        ':pwd_have' => $_POST["pwd_have_$i"] ?? '',
+        ':pwd_id' => $_POST["pwd_id_$i"] ?? '',
+        ':relationship' => $_POST["relationship_$i"] ?? '',
+        ':civil_status' => $_POST["civil_status_$i"] ?? '',
+        ':religion' => $_POST["religion_$i"] ?? '',
+        ':citizenship' => $_POST["citizenship_$i"] ?? '',
+        ':education_level' => $_POST["education_level_$i"] ?? '',
+        ':currently_enrolled' => $_POST["currently_enrolled_$i"] ?? '',
+        ':school_level' => $_POST["school_level_$i"] ?? '',
+        ':school_place' => $_POST["school_place_$i"] ?? '',
+        ':employment_status' => $_POST["employment_status_$i"] ?? '',
+        ':work_details' => $_POST["work_details_$i"] ?? '',
+        ':monthly_income' =>$_POST["monthly_income_$i"] ?? ''
+    ]);
+    $i++;
+}
 
-        $conn->commit();
-        echo "<script>alert('✅ Census form submitted successfully!'); window.location.href='census.php';</script>";
+$conn->commit();
+echo "<script>alert('✅ Census form submitted successfully!'); window.location.href='census.php';</script>";
+
 
     } catch (PDOException $e) {
         if ($conn->inTransaction()) $conn->rollBack();
@@ -156,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     h2, h1 {
         text-align: center;
-        color: #2c3e50;
+        color: #61b0ffff;
         margin-bottom: 25px;
     }
     .form-group {
@@ -354,282 +359,369 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
 
-
-<!-- Household Members Section -->
+<!-- ========================= -->
+<!-- 👨‍👩‍👧 Household Members -->
+<!-- ========================= -->
 <h3>Household Members Information</h3>
-<button id="openTableBtn" style="margin-bottom:10px;">📋 View Household Table</button>
 
-<!-- Modal -->
+<!-- 🔘 Button to open popup -->
+<button type="button" id="openHouseholdBtn" class="open-btn">
+  👨‍👩‍👧 View Household Members Table
+</button>
+
+<!-- 🪟 Modal Container -->
 <div id="householdModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
-    <h2>Household Members Information</h2>
 
     <div class="table-container">
-      <table class="household-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Household Member</th>
-            <th>Age</th>
-            <th>Date of Birth</th>
-            <th>Sex</th>
-            <th>PhilHealth ID</th>
-            <th>PWD ID</th>
-            <th>Relationship</th>
-            <th>Civil Status</th>
-            <th>Religion</th>
-            <th>Citizenship</th>
-            <th>Education Level</th>
-            <th>Currently Enrolled?</th>
-            <th>School Level</th>
-            <th>Place of School</th>
-            <th>Employment Status</th>
-            <th>Work Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php for ($i = 1; $i <= 10; $i++): ?>
-          <tr>
-            <td><?= $i ?></td>
-            <td><input type="text" name="member_name_<?= $i ?>" placeholder="Surname, First name, Middle name"></td>
-            <td><input type="number" class="age-input" name="age_<?= $i ?>" min="0" max="120" required></td>
+      <button type="button" id="addMemberBtn" class="add-btn">➕ Add Member</button>
 
-            <!-- Date of Birth -->
-            <td>
-              <select name="birth_month_<?= $i ?>">
-                <option value="">Month</option>
-                <?php
-                $months = [
-                  "January","February","March","April","May","June",
-                  "July","August","September","October","November","December"
-                ];
-                foreach ($months as $m) echo "<option value='$m'>$m</option>";
-                ?>
-              </select>
-              <select name="birth_year_<?= $i ?>">
-                <option value="">Year</option>
-                <?php for ($y = date('Y'); $y >= 1900; $y--) echo "<option value='$y'>$y</option>"; ?>
-              </select>
-            </td>
-
-            <!-- Sex -->
-            <td>
-              <select name="sex_<?= $i ?>">
-                <option value="">Select</option>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Other</option>
-              </select>
-            </td>
-
-            <!-- PhilHealth -->
-            <td>
-              <select name="philhealth_have_<?= $i ?>" class="philhealth-select">
-                <option value="">Select</option>
-                <option value="yes">Have</option>
-                <option value="no">None</option>
-              </select>
-            </td>
-
-            <!-- PWD -->
-            <td>
-              <select name="pwd_have_<?= $i ?>" class="pwd-select">
-                <option value="">Select</option>
-                <option value="yes">Have</option>
-                <option value="no">None</option>
-              </select>
-            </td>
-
-            <!-- Relationship -->
-            <td>
-              <select name="relationship_<?= $i ?>">
-                <option value="">Select</option>
-                <option>Head</option><option>Spouse</option><option>Son</option><option>Daughter</option>
-                <option>Stepson</option><option>Stepdaughter</option><option>Son-in-law</option>
-                <option>Daughter-in-law</option><option>Grandson</option><option>Granddaughter</option>
-                <option>Father</option><option>Mother</option><option>Brother</option><option>Sister</option>
-                <option>Uncle</option><option>Aunt</option><option>Nephew</option><option>Niece</option>
-                <option>Other relative</option><option>Non-relative</option><option>Boarder</option>
-                <option>Domestic helper</option>
-              </select>
-            </td>
-
-            <!-- Civil Status -->
-            <td>
-              <select name="civil_status_<?= $i ?>">
-                <option value="">Select</option>
-                <option>Single</option><option>Married</option><option>Living-in</option>
-                <option>Widowed</option><option>Separated</option><option>Divorced</option><option>Unknown</option>
-              </select>
-            </td>
-
-            <td><input type="text" name="religion_<?= $i ?>" placeholder="Religion"></td>
-            <td><input type="text" name="citizenship_<?= $i ?>" placeholder="Citizenship"></td>
-
-            <!-- Education -->
-            <td class="education-cell"></td>
-
-            <!-- Enrollment -->
-            <td class="enrolled-cell"></td>
-            <td class="school-level-cell"></td>
-            <td class="school-place-cell"></td>
-
-            <!-- Employment -->
-            <td>
-              <select name="employment_<?= $i ?>" class="employment-select">
-                <option value="">Select</option>
-                <option value="unemployed">Unemployed</option>
-                <option value="self-employed">Self-employed</option>
-                <option value="employed">Employed</option>
-              </select>
-            </td>
-
-            <td class="work-details-cell"></td>
-          </tr>
-          <?php endfor; ?>
-        </tbody>
-      </table>
+      <div class="scroll-container">
+        <table class="household-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Birth Month</th>
+              <th>Birth Year</th>
+              <th>Sex</th>
+              <th>PhilHealth?</th>
+              <th>PhilHealth ID</th>
+              <th>PWD?</th>
+              <th>PWD ID</th>
+              <th>Relationship</th>
+              <th>Civil Status</th>
+              <th>Religion</th>
+              <th>Citizenship</th>
+              <th>Highest Level of Education Completed?</th>
+              <th>Currently Enrolled</th>
+              <th>School Level</th>
+              <th>School Place</th>
+              <th>Employment Status</th>
+              <th>Work Details</th>
+              <th>Monthly Income (₱)</th>
+              <th>❌</th>
+            </tr>
+          </thead>
+          <tbody id="householdBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 <style>
-.modal {display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);}
-.modal-content{background:#fff;margin:2% auto;padding:15px;border-radius:10px;width:95%;max-width:1600px;max-height:90vh;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.4);}
-.close{color:red;float:right;font-size:28px;font-weight:bold;cursor:pointer;}
-.table-container{overflow:auto;max-height:75vh;border:1px solid #ddd;}
-.household-table{border-collapse:collapse;width:100%;font-size:13px;min-width:1800px;}
-.household-table th,.household-table td{border:1px solid #ddd;padding:5px;text-align:center;}
-.household-table th{background-color:#004080;color:white;position:sticky;top:0;}
-.household-table input,.household-table select{width:100%;padding:3px;box-sizing:border-box;}
+/* 🔘 Button styling */
+.open-btn {
+  background: #004080;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.open-btn:hover {
+  background: #0059b3;
+}
+
+/* 🪟 Modal styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  overflow-y: auto;
+}
+.modal-content {
+  background-color: #fff;
+  margin: 3% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 95%;
+  max-width: 1700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.close {
+  color: #ff0000;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover {
+  color: #cc0000;
+}
+
+/* 📋 Table styling */
+.table-container {
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+.scroll-container {
+  overflow-x: auto;
+  max-height: 70vh;
+}
+.add-btn {
+  background: #004080;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.household-table {
+  width: 2400px; /* expanded width for extra column */
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.household-table th,
+.household-table td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+.household-table input,
+.household-table select {
+  width: 100%;
+  padding: 3px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.household-table input[name^="member_name_"] {
+  width: 240px;
+}
 </style>
 
 <script>
-// Modal open/close
-const modal=document.getElementById("householdModal");
-const btn=document.getElementById("openTableBtn");
-const span=document.getElementsByClassName("close")[0];
-btn.onclick=()=>{modal.style.display="block";document.body.style.overflow="hidden";}
-span.onclick=()=>{modal.style.display="none";document.body.style.overflow="auto";}
-window.onclick=e=>{if(e.target==modal){modal.style.display="none";document.body.style.overflow="auto";}}
+let memberCount = 0;
 
-// LocalStorage save/restore
-document.querySelectorAll(".household-table input,.household-table select").forEach(el=>{
-  const key=el.name;
-  if(localStorage.getItem(key)) el.value=localStorage.getItem(key);
-  el.addEventListener("input",()=>localStorage.setItem(key,el.value));
-});
+// 🪟 Modal logic
+const modal = document.getElementById("householdModal");
+const openBtn = document.getElementById("openHouseholdBtn");
+const closeBtn = document.getElementsByClassName("close")[0];
 
-// PhilHealth logic
-document.querySelectorAll(".philhealth-select").forEach(sel=>{
-  sel.addEventListener("change",e=>{
-    const cell=e.target.parentElement;
-    const old=cell.querySelector(".philhealth-id");
-    if(old) old.remove();
-    if(e.target.value==="yes"){
-      const input=document.createElement("input");
-      input.type="text";input.className="philhealth-id";
-      input.placeholder="12-digit ID";input.pattern="\\d{12}";input.maxLength=12;
-      cell.appendChild(input);
-    }
-  });
-});
+openBtn.onclick = () => {
+  modal.style.display = "block";
+  document.body.style.overflow = "hidden";
+};
+closeBtn.onclick = () => {
+  modal.style.display = "none";
+  document.body.style.overflow = "auto";
+};
+window.onclick = (event) => {
+  if (event.target === modal) {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+};
 
-// PWD logic
-document.querySelectorAll(".pwd-select").forEach(sel=>{
-  sel.addEventListener("change",e=>{
-    const cell=e.target.parentElement;
-    const old=cell.querySelector(".pwd-id");
-    if(old) old.remove();
-    if(e.target.value==="yes"){
-      const input=document.createElement("input");
-      input.type="text";input.className="pwd-id";
-      input.placeholder="PWD ID";input.pattern="\\d*";
-      cell.appendChild(input);
-    }
-  });
-});
+// 🧩 Add new household member
+document.getElementById("addMemberBtn").addEventListener("click", () => {
+  memberCount++;
+  const row = document.createElement("tr");
 
-// Dynamic age logic
-document.querySelectorAll(".age-input").forEach(ageField=>{
-  ageField.addEventListener("input",()=>{
-    const row=ageField.closest("tr");
-    const age=parseInt(ageField.value)||0;
-    const eduCell=row.querySelector(".education-cell");
-    const enrollCell=row.querySelector(".enrolled-cell");
-    const levelCell=row.querySelector(".school-level-cell");
-    const placeCell=row.querySelector(".school-place-cell");
-    eduCell.innerHTML="";enrollCell.innerHTML="";levelCell.innerHTML="";placeCell.innerHTML="";
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({length: 120}, (_, i) => `<option value="${currentYear - i}">${currentYear - i}</option>`).join("");
+  const monthOptions = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+    .map(m => `<option value="${m}">${m}</option>`).join("");
 
-    // Education (only 5+ years old)
-    if(age>=5){
-      const edu=document.createElement("select");
-      edu.innerHTML=`
+  row.innerHTML = `
+    <td>${memberCount}</td>
+    <td><input type="text" name="member_name_${memberCount}" placeholder="Surname, First name, M.I." required></td>
+    <td><input type="number" name="age_${memberCount}" min="0"></td>
+
+    <td><select name="birth_month_${memberCount}"><option value="">Month</option>${monthOptions}</select></td>
+    <td><select name="birth_year_${memberCount}"><option value="">Year</option>${yearOptions}</select></td>
+
+    <td>
+      <select name="sex_${memberCount}">
         <option value="">Select</option>
-        <option>No education</option>
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+    </td>
+
+    <!-- PhilHealth -->
+    <td>
+      <select name="philhealth_have_${memberCount}" onchange="handlePhilhealth(${memberCount})">
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+    </td>
+    <td><input type="number" name="philhealth_id_${memberCount}" placeholder="PhilHealth ID" style="display:none;"></td>
+
+    <!-- PWD -->
+    <td>
+      <select name="pwd_have_${memberCount}" onchange="handlePWD(${memberCount})">
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+    </td>
+    <td><input type="number" name="pwd_id_${memberCount}" placeholder="PWD ID" style="display:none;"></td>
+
+    <!-- Relationship -->
+    <td>
+      <select name="relationship_${memberCount}">
+        <option value="">Select</option>
+        ${[
+          "Head","Spouse","Son","Daughter","Stepson","Stepdaughter","Son in law","Daughter in law",
+          "Grandson","Granddaughter","Father","Mother","Brother","Sister","Uncle","Aunt",
+          "Nephew","Niece","Other relative","Non-relative","Boarder","Domestic helper"
+        ].map(r => `<option value="${r}">${r}</option>`).join("")}
+      </select>
+    </td>
+
+    <!-- Civil Status -->
+    <td>
+      <select name="civil_status_${memberCount}">
+        <option value="">Select</option>
+        <option>Single</option>
+        <option>Married</option>
+        <option>Living-in</option>
+        <option>Widowed</option>
+        <option>Separated</option>
+        <option>Divorced</option>
+        <option>Unknown</option>
+      </select>
+    </td>
+
+    <td><input type="text" name="religion_${memberCount}"></td>
+    <td><input type="text" name="citizenship_${memberCount}"></td>
+
+    <!-- Education -->
+    <td>
+      <select name="education_level_${memberCount}" onchange="handleEducation(${memberCount})">
+        <option value="">Select</option>
+        ${[
+          "No education","Pre-school","Elementary level","Elementary graduate","High school level",
+          "High school graduate","Junior HS","Junior HS graduate","Senior HS level","Senior HS graduate",
+          "Vocational/Tech","College level","College graduate","Post-graduate"
+        ].map(e => `<option value="${e}">${e}</option>`).join("")}
+      </select>
+    </td>
+    <td><select name="currently_enrolled_${memberCount}" style="display:none;" onchange="handleEnrollment(${memberCount})">
+      <option value="">Select</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select></td>
+    <td>
+      <select name="school_level_${memberCount}" style="display:none;">
+        <option value="">Select</option>
         <option>Pre-school</option>
-        <option>Elementary level</option>
-        <option>Elementary graduate</option>
-        <option>High school level</option>
-        <option>High school graduate</option>
-        <option>Junior HS</option>
-        <option>Junior HS graduate</option>
-        <option>Senior HS level</option>
-        <option>Senior HS graduate</option>
-        <option>Vocational/Tech</option>
-        <option>College level</option>
-        <option>College graduate</option>
-        <option>Post-graduate</option>`;
-      eduCell.appendChild(edu);
-    }
+        <option>Elementary</option>
+        <option>Junior High School</option>
+        <option>Senior High School</option>
+        <option>Vocational/Technical</option>
+        <option>College/University</option>
+      </select>
+    </td>
+    <td><input type="text" name="school_place_${memberCount}" placeholder="School Place" style="display:none;"></td>
 
-    // School (only 3–24 years old)
-    if(age>2 && age<25){
-      const enroll=document.createElement("select");
-      enroll.className="enrolled-select";
-      enroll.innerHTML=`
+    <!-- Employment -->
+    <td>
+      <select name="employment_status_${memberCount}" onchange="handleEmployment(${memberCount})">
         <option value="">Select</option>
-        <option value="yes-public">Yes - Public</option>
-        <option value="yes-private">Yes - Private</option>
-        <option value="no">No</option>`;
-      enrollCell.appendChild(enroll);
+        <option value="Employed">Employed</option>
+        <option value="Unemployed">Unemployed</option>
+      </select>
+    </td>
+    <td><input type="text" name="work_details_${memberCount}" placeholder="Work Details" style="display:none;"></td>
 
-      enroll.addEventListener("change",e=>{
-        levelCell.innerHTML="";placeCell.innerHTML="";
-        if(e.target.value.startsWith("yes")){
-          const level=document.createElement("select");
-          level.innerHTML=`
-            <option value="">Select</option>
-            <option>Pre-school</option>
-            <option>Elementary</option>
-            <option>Junior High School</option>
-            <option>Senior High School</option>
-            <option>Vocational/Technical</option>
-            <option>College/University</option>`;
-          levelCell.appendChild(level);
-          const place=document.createElement("input");
-          place.type="text";place.placeholder="Place of School";
-          placeCell.appendChild(place);
-        }
-      });
-    }
-  });
+    <!-- Monthly Income -->
+    <td><input type="number" name="monthly_income_${memberCount}" placeholder="₱" min="0" style="display:none;"></td>
+
+    <td><button type="button" onclick="this.closest('tr').remove()">❌</button></td>
+  `;
+
+  document.getElementById("householdBody").appendChild(row);
 });
 
-// Employment logic
-document.querySelectorAll(".employment-select").forEach(sel=>{
-  sel.addEventListener("change",e=>{
-    const cell=e.target.closest("tr").querySelector(".work-details-cell");
-    cell.innerHTML="";
-    if(e.target.value==="employed"||e.target.value==="self-employed"){
-      const input=document.createElement("input");
-      input.type="text";input.placeholder="Work / Company Details";
-      cell.appendChild(input);
-    }
-  });
-});
+// =======================
+// 🧠 LOGIC HANDLERS
+// =======================
+function handlePhilhealth(i) {
+  const have = document.querySelector(`[name="philhealth_have_${i}"]`).value;
+  const idField = document.querySelector(`[name="philhealth_id_${i}"]`);
+  idField.style.display = (have === "Yes") ? "inline-block" : "none";
+  if (have !== "Yes") idField.value = "";
+}
+
+function handlePWD(i) {
+  const have = document.querySelector(`[name="pwd_have_${i}"]`).value;
+  const idField = document.querySelector(`[name="pwd_id_${i}"]`);
+  idField.style.display = (have === "Yes") ? "inline-block" : "none";
+  if (have !== "Yes") idField.value = "";
+}
+
+function handleEducation(i) {
+  const level = document.querySelector(`[name="education_level_${i}"]`).value;
+  const enrolled = document.querySelector(`[name="currently_enrolled_${i}"]`);
+  const schoolLevel = document.querySelector(`[name="school_level_${i}"]`);
+  const schoolPlace = document.querySelector(`[name="school_place_${i}"]`);
+
+  if (level !== "No education" && level !== "") {
+    enrolled.style.display = "inline-block";
+  } else {
+    enrolled.style.display = "none";
+    schoolLevel.style.display = "none";
+    schoolPlace.style.display = "none";
+    enrolled.value = "";
+    schoolLevel.value = "";
+    schoolPlace.value = "";
+  }
+}
+
+function handleEnrollment(i) {
+  const enrolled = document.querySelector(`[name="currently_enrolled_${i}"]`).value;
+  const schoolLevel = document.querySelector(`[name="school_level_${i}"]`);
+  const schoolPlace = document.querySelector(`[name="school_place_${i}"]`);
+  if (enrolled === "Yes") {
+    schoolLevel.style.display = "inline-block";
+    schoolPlace.style.display = "inline-block";
+  } else {
+    schoolLevel.style.display = "none";
+    schoolPlace.style.display = "none";
+    schoolLevel.value = "";
+    schoolPlace.value = "";
+  }
+}
+
+function handleEmployment(i) {
+  const status = document.querySelector(`[name="employment_status_${i}"]`).value;
+  const workField = document.querySelector(`[name="work_details_${i}"]`);
+  const incomeField = document.querySelector(`[name="monthly_income_${i}"]`);
+  if (status === "Employed") {
+    workField.style.display = "inline-block";
+    incomeField.style.display = "inline-block";
+  } else {
+    workField.style.display = "none";
+    incomeField.style.display = "none";
+    workField.value = "";
+    incomeField.value = "";
+  }
+}
 </script>
+
+
+
+
+
 
 
 
@@ -637,6 +729,44 @@ document.querySelectorAll(".employment-select").forEach(sel=>{
 <!-- Questions Section -->
 <div class="form-section">
     <h2>Questions</h2>
+
+
+    <!-- ========================== -->
+  <!-- NEW: Income and Work Section -->
+  <!-- ========================== -->
+
+  <!-- Source of Income -->
+  <div class="form-group">
+    <label for="income_source">Source of Income: What is the major source of income?</label>
+    <select id="income_source" name="income_source" required>
+      <option value="">Select Source</option>
+      <option value="employment">Employment</option>
+      <option value="business">Business</option>
+      <option value="remittance">Remittance</option>
+      <option value="investments">Investments</option>
+    </select>
+  </div>
+
+  <!-- Status of Work/Business -->
+  <div class="form-group">
+    <label for="work_status">Status of Work/Business:</label>
+    <select id="work_status" name="work_status" required>
+      <option value="">Select Status</option>
+      <option value="permanent_work">Permanent work</option>
+      <option value="casual_work">Casual work</option>
+      <option value="contractual_work">Contractual work</option>
+      <option value="individually_owned">Individually owned business</option>
+      <option value="shared_partnership">Shared/Partnership business</option>
+      <option value="corporate_business">Corporate business</option>
+    </select>
+  </div>
+
+  <!-- Place of Work/Business -->
+  <div class="form-group">
+    <label for="work_place">Place of Work/Business (please write the response):</label>
+    <input type="text" id="work_place" name="work_place" placeholder="Enter place of work or business">
+  </div>
+</div>
 
     <!-- Question 1: Female household member who died -->
     <div class="form-group">
